@@ -88,7 +88,7 @@ loop do
             client.unfollow(object.user.screen_name)
           when /sudo make me a sandwich/i
             client.update "@#{object.user.screen_name} permission denied!", in_reply_to_status:object
-          when /make me sandwich/i
+          when /make me a sandwich/i
             client.update "@#{object.user.screen_name} ask politely, please!", in_reply_to_status:object
           end
         end
