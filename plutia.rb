@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.0.5"
+version = "v0.0.6"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -17,6 +17,10 @@ reply_home = YAML.load_file File.expand_path(".", "replies/home.yml")
 reply_hungry = YAML.load_file File.expand_path(".", "replies/hungry.yml")
 reply_morning = YAML.load_file File.expand_path(".", "replies/morning.yml")
 reply_night = YAML.load_file File.expand_path(".", "replies/night.yml")
+reply_tired = YAML.load_file File.expand_path(".", "replies/tired.yml")
+reply_work = YAML.load_file File.expand_path(".", "replies/tired.yml")
+reply_school = YAML.load_file File.expand_path(".", "replies/tired.yml")
+reply_away = YAML.load_file File.expand_path(".", "replies/away.yml")
 
 # Twitter client configuration
 client = Twitter::REST::Client.new do |config|
@@ -90,6 +94,8 @@ loop do
             client.update "@#{object.user.screen_name} permission denied!", in_reply_to_status:object
           when /make me a sandwich/i
             client.update "@#{object.user.screen_name} ask politely, please!", in_reply_to_status:object
+          when /give me a hug/i
+            client.update "@#{object.user.screen_name} *hugs*"
           end
         end
         
@@ -99,12 +105,28 @@ loop do
           client.update "@#{object.user.screen_name} #{reply_morning.sample}", in_reply_to_status:object
         when /good night/i
           client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
+        when /oyasumi/i
+          client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
         when /good evening/i
           client.update "@#{object.user.screen_name} #{reply_evening.sample}", in_reply_to_status:object
         when /i'm hungry/i
           client.update "@#{object.user.screen_name} #{reply_hungry.sample}", in_reply_to_status:object
         when /i'm home/i
           client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
+        when /tadaima/i
+          client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
+        when /i'm sleepy/i
+          client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
+        when /i'm tired/i
+          client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
+        when /i want a hug/i
+          client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
+        when /off to work/i
+          client.update "@#{object.user.screen_name} #{reply_work.sample}", in_reply_to_status:object
+        when /off to school/i
+          client.update "@#{object.user.screen_name} #{reply_school.sample}", in_reply_to_status:object
+        when /away for/i
+          client.update "@#{object.user.screen_name} #{reply_away.sample}", in_reply_to_status:object
         end
         
       rescue NotImportantException => e
@@ -117,15 +139,20 @@ loop do
         
         case object.name
         when :follow
+          puts "\033[34;1m[#{Time.new.to_s}] #{object.source.screen_name} followed you!\033[0m"
           client.update "@#{object.source.screen_name} Thanks for following me!"
           client.follow(object.source.screen_name)
         when :favorite
+          puts "\033[33;1m[#{Time.new.to_s}] #{object.source.screen_name} favorited you!\033[0m"
           client.update "@#{object.source.screen_name} Thanks for the star, I'll keep it safe!"
         when :unfavorite
+          puts "\033[31;1m[#{Time.new.to_s}] #{object.source.screen_name} unfavorited you!\033[0m"
           client.update "@#{object.source.screen_name} W-Why are you taking my star away? ;w;"
         when :list_member_added
+          puts "\033[36;1m[#{Time.new.to_s}] #{object.source.screen_name} added you to the list '#{object.target_object.name}'!\033[0m"
           client.update "@#{object.source.screen_name} Thanks for adding me to '#{object.target_object.name}'. It's quite roomy here!"
         when :list_member_removed
+          puts "\033[31;1m[#{Time.new.to_s}] #{object.source.screen_name} removed you from the list '#{object.target_object.name}'!\033[0m"
           client.update "@#{object.source.screen_name} I-I have to go out of '#{object.target_object.name}'? Okay, if you insist ._."
         end
       rescue NotImportantException => e
