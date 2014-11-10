@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.0.4"
+version = "v0.0.5"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -86,6 +86,10 @@ loop do
           when /stop following me/i
             client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status:object
             client.unfollow(object.user.screen_name)
+          when /sudo make me a sandwich/i
+            client.update "@#{object.user.screen_name} permission denied!", in_reply_to_status:object
+          when /make me sandwich/i
+            client.update "@#{object.user.screen_name} ask politely, please!", in_reply_to_status:object
           end
         end
         
