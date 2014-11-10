@@ -21,6 +21,7 @@ reply_tired = YAML.load_file File.expand_path(".", "replies/tired.yml")
 reply_work = YAML.load_file File.expand_path(".", "replies/tired.yml")
 reply_school = YAML.load_file File.expand_path(".", "replies/tired.yml")
 reply_away = YAML.load_file File.expand_path(".", "replies/away.yml")
+reply_love = YAML.load_file File.expand_path(".", "replies/love.yml")
 
 # Twitter client configuration
 client = Twitter::REST::Client.new do |config|
@@ -95,9 +96,13 @@ loop do
           when /make me a sandwich/i
             client.update "@#{object.user.screen_name} ask politely, please!", in_reply_to_status:object
           when /give me a hug/i
-            client.update "@#{object.user.screen_name} *hugs*"
+            client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           when /hug please/i
-            client.update "@#{object.user.screen_name} *hugs*"
+            client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
+          when /i love you/i
+            client.update "@#{object.user.screen_name} #{reply_love.sample}", in_reply_to_status:object
+          when /love you/i
+            client.update "@#{object.user.screen_name} #{reply_love.sample}", in_reply_to_status:object
           end
         end
         
