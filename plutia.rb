@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.0.1"
+version = "v0.0.2"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -27,12 +27,12 @@ streamer = Twitter::Streaming::Client.new do |config|
 end
 
 begin
-  current_user = client.current_user
+  $current_user = client.current_user
 rescue Exception => e
   puts "Exception: #{e.message}"
   # best hack:
-  current_user = OpenStruct.new
-  current_user.id = conf["access_token"].split("-")[0]
+  $current_user = OpenStruct.new
+  $current_user.id = conf["access_token"].split("-")[0]
 end
 
 # lets define some exceptions
@@ -46,6 +46,12 @@ class Twitter::Tweet
   
   def raise_if_retweet!
     raise NotImportantException if self.text.start_with? "RT @"
+  end
+end
+
+class Twitter::Streaming::Event
+  def raise_if_current_user!
+    raise NotImportantException if $current_user.id == self.source.id
   end
 end
 
@@ -66,6 +72,7 @@ loop do
       begin
         object.raise_if_current_user!
         object.raise_if_retweet!
+        
         case object.text
         when /stop following me?/i
           client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!"
@@ -77,6 +84,8 @@ loop do
       end
     elsif object.is_a? Twitter::Streaming::Event
       begin
+        object.raise_if_current_user!
+        
         case object.name
         when :follow
           client.update "@#{object.source.screen_name} Thanks for following me!"
