@@ -105,26 +105,42 @@ loop do
         case object.text
         when /good morning/i
           client.update "@#{object.user.screen_name} #{reply_morning.sample}", in_reply_to_status:object
+          
+        # good night replies
+        when /heading to bed/i
+          client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
         when /good night/i
           client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
         when /oyasumi/i
           client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
+          
+        # good evening replies
         when /good evening/i
           client.update "@#{object.user.screen_name} #{reply_evening.sample}", in_reply_to_status:object
+        
+        # i'm hungry replies
         when /i'm hungry/i
           client.update "@#{object.user.screen_name} #{reply_hungry.sample}", in_reply_to_status:object
+          
+        # i'm home replies
         when /i'm home/i
           client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
         when /tadaima/i
           client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
+          
+        # i'm tired replies
         when /i'm sleepy/i
           client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
         when /i'm tired/i
           client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
+          
+        # people need hugs
         when /i want a hug/i
           client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
         when /i need a hug/i
           client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
+          
+        # people go somewhere
         when /off to work/i
           client.update "@#{object.user.screen_name} #{reply_work.sample}", in_reply_to_status:object
         when /off to school/i
