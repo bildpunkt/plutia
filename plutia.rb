@@ -99,6 +99,7 @@ loop do
         when :list_member_removed
           client.update "@#{object.source.screen_name} I-I have to go out of '#{object.target_object.name}'? Okay, if you insist ._."
         end
+      rescue NotImportantException => e
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
       end
