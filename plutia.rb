@@ -6,10 +6,17 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.0.3"
+version = "v0.0.4"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
+
+# reply lists
+reply_evening = YAML.load_file File.expand_path(".", "replies/evening.yml")
+reply_home = YAML.load_file File.expand_path(".", "replies/home.yml")
+reply_hungry = YAML.load_file File.expand_path(".", "replies/hungry.yml")
+reply_morning = YAML.load_file File.expand_path(".", "replies/morning.yml")
+reply_night = YAML.load_file File.expand_path(".", "replies/night.yml")
 
 # Twitter client configuration
 client = Twitter::REST::Client.new do |config|
@@ -73,13 +80,29 @@ loop do
         object.raise_if_current_user!
         object.raise_if_retweet!
         
+        # stuff plutia only will reply to if you mention her
         if object.text.include? "@pluutia"
           case object.text
           when /stop following me/i
-            client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!"
+            client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status:object
             client.unfollow(object.user.screen_name)
           end
         end
+        
+        # stuff plutia will reply to if she see's it on her timeline
+        case object.text
+        when /good morning/i
+          client.update "@#{object.user.screen_name} #{reply_morning.sample}", in_reply_to_status:object
+        when /good night/i
+          client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
+        when /good evening/i
+          client.update "@#{object.user.screen_name} #{reply_evening.sample}", in_reply_to_status:object
+        when /i'm hungry/i
+          client.update "@#{object.user.screen_name} #{reply_hungry.sample}", in_reply_to_status:object
+        when /i'm home/i
+          client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
+        end
+        
       rescue NotImportantException => e
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
