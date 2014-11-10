@@ -75,7 +75,7 @@ loop do
         case object.text
         when /stop following me?/i
           client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!"
-          client.unfollow(object.user.id)
+          client.unfollow(object.user.screen_name)
         end
       rescue NotImportantException => e
       rescue Exception => e
@@ -87,7 +87,7 @@ loop do
         case object.name
         when :follow
           client.update "@#{object.source.screen_name} Thanks for following me!"
-          client.follow(object.source.id)
+          client.follow(object.source.screen_name)
         when :favorite
           client.update "@#{object.source.screen_name} Thanks for the star, I'll keep it safe!"
         when :unfavorite
