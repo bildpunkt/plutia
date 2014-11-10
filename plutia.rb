@@ -108,5 +108,6 @@ loop do
         puts "[#{Time.new.to_s}] #{e.message}"
       end
     end
+  end
   sleep 1
 end
