@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.0.2"
+version = "v0.0.3"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -73,10 +73,12 @@ loop do
         object.raise_if_current_user!
         object.raise_if_retweet!
         
-        case object.text
-        when /stop following me?/i
-          client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!"
-          client.unfollow(object.user.screen_name)
+        if object.text.include? "@pluutia"
+          case object.text
+          when /stop following me/i
+            client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!"
+            client.unfollow(object.user.screen_name)
+          end
         end
       rescue NotImportantException => e
       rescue Exception => e
@@ -100,12 +102,6 @@ loop do
           client.update "@#{object.source.screen_name} I-I have to go out of '#{object.target_object.name}'? Okay, if you insist ._."
         end
       rescue NotImportantException => e
-      rescue Exception => e
-        puts "[#{Time.new.to_s}] #{e.message}"
-      end
-    elsif object.is_a? Twitter::Streaming::FriendList
-      begin
-        pp object
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
       end
