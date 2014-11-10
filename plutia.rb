@@ -49,12 +49,6 @@ class Twitter::Tweet
   end
 end
 
-class Twitter::Streaming::Event
-  def raise_if_current_user!
-    raise NotImportantException if $current_user.id == self.source.id
-  end
-end
-
 puts "\033[34;1mplutia #{version}\033[0m by pixeldesu"
 puts "---------------------------"
 
@@ -83,7 +77,6 @@ loop do
       end
     elsif object.is_a? Twitter::Streaming::Event
       begin
-        object.raise_if_current_user!
         case object.name
         when :follow
           client.update "@#{object.source.screen_name} Thanks for following me!"
@@ -97,7 +90,6 @@ loop do
         when :list_member_removed
           client.update "@#{object.source.screen_name} I-I have to go out of '#{object.target_object.name}'? Okay, if you insist ._."
         end
-      rescue NotImportantException => e
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
       end
