@@ -96,6 +96,8 @@ loop do
             client.update "@#{object.user.screen_name} ask politely, please!", in_reply_to_status:object
           when /give me a hug/i
             client.update "@#{object.user.screen_name} *hugs*"
+          when /hug please/i
+            client.update "@#{object.user.screen_name} *hugs*"
           end
         end
         
@@ -120,6 +122,8 @@ loop do
         when /i'm tired/i
           client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
         when /i want a hug/i
+          client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
+        when /i need a hug/i
           client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
         when /off to work/i
           client.update "@#{object.user.screen_name} #{reply_work.sample}", in_reply_to_status:object
