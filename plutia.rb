@@ -5,6 +5,9 @@ require 'ostruct'
 # for debugging stuff
 require 'pp'
 
+# version
+version = "v0.0.1"
+
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
 
@@ -32,6 +35,7 @@ rescue Exception => e
   current_user.id = conf["access_token"].split("-")[0]
 end
 
+# lets define some exceptions
 class NotImportantException < Exception
 end
 
@@ -51,13 +55,28 @@ class Twitter::Streaming::Event
   end
 end
 
+puts "\033[34;1mplutia #{version}\033[0m by pixeldesu"
+puts "---------------------------"
+
+# status message for test purposes
+begin 
+  client.update "Time for a test run!"
+rescue Exception => e
+  puts "[#{Time.new.to_s}] #{e.message}"
+end
+
+# base code: do not touch unless you know what it does
 loop do
   streamer.user do |object|
     if object.is_a? Twitter::Tweet
       begin
         object.raise_if_current_user!
         object.raise_if_retweet!
-        
+        case object.text
+        when /stop following me?/i
+          client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!"
+          client.unfollow(object.user.id)
+        end
       rescue NotImportantException => e
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
