@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.0.6"
+version = "v0.0.8"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -70,13 +70,6 @@ end
 puts "\033[34;1mplutia #{version}\033[0m by pixeldesu"
 puts "---------------------------"
 
-# status message for test purposes
-begin 
-  client.update "Time for a test run!"
-rescue Exception => e
-  puts "[#{Time.new.to_s}] #{e.message}"
-end
-
 # base code: do not touch unless you know what it does
 loop do
   streamer.user do |object|
@@ -91,10 +84,6 @@ loop do
           when /stop following me/i
             client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status:object
             client.unfollow(object.user.screen_name)
-          when /sudo make me a sandwich/i
-            client.update "@#{object.user.screen_name} permission denied!", in_reply_to_status:object
-          when /make me a sandwich/i
-            client.update "@#{object.user.screen_name} ask politely, please!", in_reply_to_status:object
           when /give me a hug/i
             client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           when /hug please/i
