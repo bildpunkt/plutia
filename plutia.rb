@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.0.8"
+version = "v0.1.0"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -22,6 +22,10 @@ reply_work = YAML.load_file File.expand_path(".", "replies/tired.yml")
 reply_school = YAML.load_file File.expand_path(".", "replies/tired.yml")
 reply_away = YAML.load_file File.expand_path(".", "replies/away.yml")
 reply_love = YAML.load_file File.expand_path(".", "replies/love.yml")
+
+# filter lists
+FILTER_WORDS = YAML.load_file File.expand_path(".", "filters/words.yml")
+FILTER_RUDE = YAML.load_file File.expand_path(".", "filters/rude_words.yml")
 
 # Twitter client configuration
 client = Twitter::REST::Client.new do |config|
@@ -51,6 +55,12 @@ end
 class NotImportantException < Exception
 end
 
+class FilteredTweetException < Exception
+end
+
+class RudeTweetException < FilteredTweetException
+end
+
 class Twitter::Tweet
   def raise_if_current_user!
     raise NotImportantException if $current_user.id == self.user.id
@@ -59,11 +69,36 @@ class Twitter::Tweet
   def raise_if_retweet!
     raise NotImportantException if self.text.start_with? "RT @"
   end
+  
+  def raise_if_filtered_word!
+    FILTER_WORDS.each do |fw|
+      if self.text.downcase.include? fw.downcase
+        raise FilteredTweetException, "#{self.user.screen_name} triggered filter: '#{fw}'"
+      end
+    end
+  end
+  
+  def raise_if_rude_word!
+    FILTER_RUDE.each do |fr|
+      if self.text.downcase.include? fr.downcase
+        raise RudeTweetException, "#{self.user.screen_name} triggered filter: '#{fr}'"
+      end
+    end
+  end
+  
 end
 
 class Twitter::Streaming::Event
   def raise_if_current_user!
     raise NotImportantException if $current_user.id == self.source.id
+  end
+  
+  def raise_if_rude_word!
+    FILTER_RUDE.each do |fr|
+      if self.target_object.name.include? fr.downcase
+        raise RudeTweetException, "#{self.user.screen_name} triggered filter: '#{fr}'"
+      end
+    end
   end
 end
 
@@ -80,6 +115,9 @@ loop do
         
         # stuff plutia only will reply to if you mention her
         if object.text.include? "@pluutia"
+          object.raise_if_filtered_word!
+          object.raise_if_rude_word!
+          
           case object.text
           when /stop following me/i
             client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status:object
@@ -146,6 +184,16 @@ loop do
       rescue NotImportantException => e
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
+      rescue FilteredTweetException => e
+        puts "[#{Time.new.to_s}] #{e.message}"
+        client.update "@#{object.user.screen_name} W-What are you saying? This is not nice ;w;", in_reply_to_status:object
+      rescue RudeTweetException => e
+        puts "[#{Time.new.to_s}] #{e.message}"
+        client.update "@#{object.user.screen_name} This is too much, I-I just can't reply to this stuff anymore ;_;", in_reply_to_status:object
+        
+        # softblocking rude users
+        client.block(object.user.screen_name)
+        client.unblock(object.user.screen_name)
       end
     elsif object.is_a? Twitter::Streaming::Event
       begin
@@ -163,6 +211,7 @@ loop do
           puts "\033[31;1m[#{Time.new.to_s}] #{object.source.screen_name} unfavorited you!\033[0m"
           client.update "@#{object.source.screen_name} W-Why are you taking my star away? ;w;"
         when :list_member_added
+          object.raise_if_rude_word!
           puts "\033[36;1m[#{Time.new.to_s}] #{object.source.screen_name} added you to the list '#{object.target_object.name}'!\033[0m"
           client.update "@#{object.source.screen_name} Thanks for adding me to '#{object.target_object.name}'. It's quite roomy here!"
         when :list_member_removed
@@ -170,6 +219,9 @@ loop do
           client.update "@#{object.source.screen_name} I-I have to go out of '#{object.target_object.name}'? Okay, if you insist ._."
         end
       rescue NotImportantException => e
+      rescue RudeTweetException => e
+        puts "[#{Time.new.to_s}] #{e.message}"
+        client.update "@#{object.source.screen_name} W-What place are you putting me in? I-It's not really nice here, but if I have to... ._."
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
       end
