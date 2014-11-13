@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.1.0"
+version = "v0.1.2"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -119,9 +119,10 @@ loop do
           object.raise_if_rude_word!
           
           case object.text
-          when /stop following me/i
+          when /unmaid/i
             client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status:object
-            client.unfollow(object.user.screen_name)
+            client.block(object.user.screen_name)
+            client.unblock(object.user.screen_name)
           when /give me a hug/i
             client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           when /hug please/i
@@ -139,11 +140,7 @@ loop do
           client.update "@#{object.user.screen_name} #{reply_morning.sample}", in_reply_to_status:object
           
         # good night replies
-        when /heading to bed/i
-          client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
-        when /good night/i
-          client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
-        when /oyasumi/i
+        when /heading to bed/i, /good night/i, /oyasumi/i
           client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
           
         # good evening replies
@@ -155,21 +152,15 @@ loop do
           client.update "@#{object.user.screen_name} #{reply_hungry.sample}", in_reply_to_status:object
           
         # i'm home replies
-        when /i'm home/i
-          client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
-        when /tadaima/i
+        when /i'm home/i, /tadaima/i
           client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
           
         # i'm tired replies
-        when /i'm sleepy/i
-          client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
-        when /i'm tired/i
+        when /i'm sleepy/i, /i'm tired/i
           client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
           
         # people need hugs
-        when /i want a hug/i
-          client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
-        when /i need a hug/i
+        when /i want a hug/i, /i need a hug/i
           client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           
         # people go somewhere
