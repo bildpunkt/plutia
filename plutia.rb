@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.1.2"
+version = "v0.1.4"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -22,6 +22,7 @@ reply_work = YAML.load_file File.expand_path(".", "replies/tired.yml")
 reply_school = YAML.load_file File.expand_path(".", "replies/tired.yml")
 reply_away = YAML.load_file File.expand_path(".", "replies/away.yml")
 reply_love = YAML.load_file File.expand_path(".", "replies/love.yml")
+reply_freezing = YAML.load_file File.expand_path(".", "replies/freezing.yml")
 
 # filter lists
 FILTER_WORDS = YAML.load_file File.expand_path(".", "filters/words.yml")
@@ -123,15 +124,10 @@ loop do
             client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status:object
             client.block(object.user.screen_name)
             client.unblock(object.user.screen_name)
-          when /give me a hug/i
+          when /give me a hug/i, /hug please/i
             client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
-          when /hug please/i
-            client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
-          when /i love you/i
+          when /i love you/i, /love you/i, /ilu/i, /ily/i
             client.update "@#{object.user.screen_name} #{reply_love.sample}", in_reply_to_status:object
-          when /love you/i
-            client.update "@#{object.user.screen_name} #{reply_love.sample}", in_reply_to_status:object
-          end
         end
         
         # stuff plutia will reply to if she see's it on her timeline
@@ -163,6 +159,9 @@ loop do
         when /i want a hug/i, /i need a hug/i
           client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           
+        # people are feeling cold
+        when /i'm cold/i, /i'm freezing/i
+          client.update "@#{object.user.screen_name} ", in_reply_to_status:object
         # people go somewhere
         when /off to work/i
           client.update "@#{object.user.screen_name} #{reply_work.sample}", in_reply_to_status:object
@@ -176,11 +175,11 @@ loop do
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
       rescue FilteredTweetException => e
-        puts "[#{Time.new.to_s}] #{e.message}"
         client.update "@#{object.user.screen_name} W-What are you saying? This is not nice ;w;", in_reply_to_status:object
-      rescue RudeTweetException => e
         puts "[#{Time.new.to_s}] #{e.message}"
+      rescue RudeTweetException => e
         client.update "@#{object.user.screen_name} This is too much, I-I just can't reply to this stuff anymore ;_;", in_reply_to_status:object
+        puts "[#{Time.new.to_s}] #{e.message}"
         
         # softblocking rude users
         client.block(object.user.screen_name)
