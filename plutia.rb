@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.1.4"
+version = "v0.1.5"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -128,6 +128,8 @@ loop do
             client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           when /i love you/i, /love you/i, /ilu/i, /ily/i
             client.update "@#{object.user.screen_name} #{reply_love.sample}", in_reply_to_status:object
+          when /thanks/i, /thank you/i
+            client.update "@#{object.user.screen_name} N-No problem, I was made for this ///", in_reply_to_status:object
           end
         end
         
