@@ -162,7 +162,8 @@ loop do
           
         # people are feeling cold
         when /i'm cold/i, /i'm freezing/i
-          client.update "@#{object.user.screen_name} ", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{reply_freezing.sample}", in_reply_to_status:object
+          
         # people go somewhere
         when /off to work/i
           client.update "@#{object.user.screen_name} #{reply_work.sample}", in_reply_to_status:object
