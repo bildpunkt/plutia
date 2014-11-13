@@ -128,6 +128,7 @@ loop do
             client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           when /i love you/i, /love you/i, /ilu/i, /ily/i
             client.update "@#{object.user.screen_name} #{reply_love.sample}", in_reply_to_status:object
+          end
         end
         
         # stuff plutia will reply to if she see's it on her timeline
