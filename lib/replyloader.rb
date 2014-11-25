@@ -10,11 +10,11 @@ class ReplyLoader
   
   def reply_lists
     hsh = {}
-    CONFIG['active_replies'].each do |r|
+    CONFIG['replies'].each do |r|
       begin
-        hsh[r] = YAML.load_file File.expand_path("#{r.to_s}.yml", @path)
+        hsh[r[:key]] = YAML.load_file File.expand_path("#{r[:key].to_s}.yml", @path)
       rescue => e
-        STDERR.puts "could not load #{r.to_s}.yml: #{e.message}"
+        STDERR.puts "could not load #{r[:key].to_s}.yml: #{e.message}"
       end
     end
     hsh
