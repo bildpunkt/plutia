@@ -3,3 +3,69 @@ twitter:
   consumer_secret: YOUR_KEYS_HERE
   access_token: YOUR_KEYS_HERE
   access_token_secret: YOUR_KEYS_HERE 
+  
+  user_name: "pluutia"
+
+replies:
+  - :key: :hug     # people want hugs
+    :require_mention: true
+    :triggers:
+      - /give me a hug/
+      - /hug please/
+  - :key: :hug2     # people need hugs
+    :require_mention: false   #
+    :triggers:
+      - /i (?:want|need) a hug/
+  - :key: :love
+    :require_mention: true
+    :triggers:
+      - /(?:i )?love you/
+      - /il[uy]/
+  - :key: :thanks
+    :require_mention: true
+    :triggers:
+      - /thank(?:s| ?you)/
+  - :key: :morning   # good morning replies
+    :require_mention: false
+    :triggers:
+      - /good morning/
+  - :key: :evening   # good evening replies
+    :require_mention: false
+    :triggers:
+      - /good evening/
+  - :key: :night     # good night replies
+    :require_mention: false
+    :triggers:
+      - /heading to bed/
+      - /good ?night/
+      - /oyasumi/
+  - :key: :home      # i'm home replies
+    :require_mention: false
+    :triggers:
+      - /i(?:'| a)m home/
+      - /tadaima/
+  - :key: :hungry    # i'm hungry replies
+    :require_mention: false
+    :triggers:
+      - /i(?:'| a)m hungry/
+  - :key: :tired     # i'm tired replies
+    :require_mention: false
+    :triggers:
+      - /i(?:'| a)m sleepy/
+      - /i(?:'| a)m tired/
+  - :key: :freezing  # people are feeling cold
+    :require_mention: false
+    :triggers:
+      - /i(?:'| a)m (?:cold|freezing)/
+  - :key: :work      # people go somewhere
+    :require_mention: false
+    :triggers:
+      - /off to work/
+  - :key: :school
+    :require_mention: false
+    :triggers:
+      - /off to school/
+  - :key: :away
+    :require_mention: false
+    :triggers:
+      - /away for/
