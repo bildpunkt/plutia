@@ -6,7 +6,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-version = "v0.1.6"
+version = "v0.1.91"
 
 # config file
 conf = YAML.load_file File.expand_path(".", "config.yml")
@@ -23,6 +23,7 @@ reply_school = YAML.load_file File.expand_path(".", "replies/tired.yml")
 reply_away = YAML.load_file File.expand_path(".", "replies/away.yml")
 reply_love = YAML.load_file File.expand_path(".", "replies/love.yml")
 reply_freezing = YAML.load_file File.expand_path(".", "replies/freezing.yml")
+reply_thanks = YAML.load_file File.expand_path(".", "replies/thanks.yml")
 
 # filter lists
 FILTER_WORDS = YAML.load_file File.expand_path(".", "filters/words.yml")
@@ -125,53 +126,67 @@ loop do
             client.block(object.user.screen_name)
             client.unblock(object.user.screen_name)
           when /give me a hug/i, /hug please/i
+            sleep 3 + rand(7)
             client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           when /i love you/i, /love you/i, /ilu/i, /ily/i
+            sleep 3 + rand(7)
             client.update "@#{object.user.screen_name} #{reply_love.sample}", in_reply_to_status:object
           when /thanks/i, /thank you/i
-            client.update "@#{object.user.screen_name} N-No problem, I was made for this ///", in_reply_to_status:object
+            sleep 3 + rand(7)
+            client.update "@#{object.user.screen_name} #{reply_thanks.sample}", in_reply_to_status:object
           end
         end
         
         # stuff plutia will reply to if she see's it on her timeline
         case object.text
         when /good morning/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_morning.sample}", in_reply_to_status:object
           
         # good night replies
         when /heading to bed/i, /good night/i, /goodnight/i, /oyasumi/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
           
         # good evening replies
         when /good evening/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_evening.sample}", in_reply_to_status:object
         
         # i'm hungry replies
         when /i'm hungry/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_hungry.sample}", in_reply_to_status:object
           
         # i'm home replies
         when /i'm home/i, /tadaima/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
           
         # i'm tired replies
         when /i'm sleepy/i, /i'm tired/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
           
         # people need hugs
         when /i want a hug/i, /i need a hug/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           
         # people are feeling cold
         when /i'm cold/i, /i'm freezing/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_freezing.sample}", in_reply_to_status:object
           
         # people go somewhere
         when /off to work/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_work.sample}", in_reply_to_status:object
         when /off to school/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_school.sample}", in_reply_to_status:object
         when /away for/i
+          sleep 3 + rand(7)
           client.update "@#{object.user.screen_name} #{reply_away.sample}", in_reply_to_status:object
         end
         
@@ -179,15 +194,9 @@ loop do
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
       rescue FilteredTweetException => e
-        client.update "@#{object.user.screen_name} W-What are you saying? This is not nice ;w;", in_reply_to_status:object
         puts "[#{Time.new.to_s}] #{e.message}"
       rescue RudeTweetException => e
-        client.update "@#{object.user.screen_name} This is too much, I-I just can't reply to this stuff anymore ;_;", in_reply_to_status:object
         puts "[#{Time.new.to_s}] #{e.message}"
-        
-        # softblocking rude users
-        client.block(object.user.screen_name)
-        client.unblock(object.user.screen_name)
       end
     elsif object.is_a? Twitter::Streaming::Event
       begin
@@ -196,26 +205,30 @@ loop do
         case object.name
         when :follow
           puts "\033[34;1m[#{Time.new.to_s}] #{object.source.screen_name} followed you!\033[0m"
+          sleep 3 + rand(7)
           client.update "@#{object.source.screen_name} Thanks for following me!"
           client.follow(object.source.screen_name)
         when :favorite
           puts "\033[33;1m[#{Time.new.to_s}] #{object.source.screen_name} favorited you!\033[0m"
+          sleep 3 + rand(7)
           client.update "@#{object.source.screen_name} Thanks for the star, I'll keep it safe!"
         when :unfavorite
           puts "\033[31;1m[#{Time.new.to_s}] #{object.source.screen_name} unfavorited you!\033[0m"
+          sleep 3 + rand(7)
           client.update "@#{object.source.screen_name} W-Why are you taking my star away? ;w;"
         when :list_member_added
           object.raise_if_rude_word!
           puts "\033[36;1m[#{Time.new.to_s}] #{object.source.screen_name} added you to the list '#{object.target_object.name}'!\033[0m"
+          sleep 3 + rand(7)
           client.update "@#{object.source.screen_name} Thanks for adding me to '#{object.target_object.name}'. It's quite roomy here!"
         when :list_member_removed
           puts "\033[31;1m[#{Time.new.to_s}] #{object.source.screen_name} removed you from the list '#{object.target_object.name}'!\033[0m"
+          sleep 3 + rand(7)
           client.update "@#{object.source.screen_name} I-I have to go out of '#{object.target_object.name}'? Okay, if you insist ._."
         end
       rescue NotImportantException => e
       rescue RudeTweetException => e
         puts "[#{Time.new.to_s}] #{e.message}"
-        client.update "@#{object.source.screen_name} W-What place are you putting me in? I-It's not really nice here, but if I have to... ._."
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
       end
