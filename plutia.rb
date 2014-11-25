@@ -2,28 +2,24 @@
 require 'yaml'
 require 'twitter'
 require 'ostruct'
+
 # for debugging stuff
 require 'pp'
 
 # version
-version = "v0.1.91"
+PLUTIA_VERSION = "v0.1.91"
 
 # config file
-conf = YAML.load_file File.expand_path(".", "config.yml")
+CONFIG = YAML.load_file File.expand_path(".", "config.yml")
+
+$LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
+
+require 'twitter-extensions'
+require 'replyloader'
 
 # reply lists
-reply_evening = YAML.load_file File.expand_path(".", "replies/evening.yml")
-reply_home = YAML.load_file File.expand_path(".", "replies/home.yml")
-reply_hungry = YAML.load_file File.expand_path(".", "replies/hungry.yml")
-reply_morning = YAML.load_file File.expand_path(".", "replies/morning.yml")
-reply_night = YAML.load_file File.expand_path(".", "replies/night.yml")
-reply_tired = YAML.load_file File.expand_path(".", "replies/tired.yml")
-reply_work = YAML.load_file File.expand_path(".", "replies/work.yml")
-reply_school = YAML.load_file File.expand_path(".", "replies/school.yml")
-reply_away = YAML.load_file File.expand_path(".", "replies/away.yml")
-reply_love = YAML.load_file File.expand_path(".", "replies/love.yml")
-reply_freezing = YAML.load_file File.expand_path(".", "replies/freezing.yml")
-reply_thanks = YAML.load_file File.expand_path(".", "replies/thanks.yml")
+loader = ReplyLoader.new './replies'
+replies = loader.reply_lists
 
 # filter lists
 FILTER_WORDS = YAML.load_file File.expand_path(".", "filters/words.yml")
@@ -31,80 +27,22 @@ FILTER_RUDE = YAML.load_file File.expand_path(".", "filters/rude_words.yml")
 
 # Twitter client configuration
 client = Twitter::REST::Client.new do |config|
-  config.consumer_key = conf['twitter']['consumer_key']
-  config.consumer_secret = conf['twitter']['consumer_secret']
-  config.access_token = conf['twitter']['access_token']
-  config.access_token_secret = conf['twitter']['access_token_secret']
+  config.consumer_key = CONFIG['twitter']['consumer_key']
+  config.consumer_secret = CONFIG['twitter']['consumer_secret']
+  config.access_token = CONFIG['twitter']['access_token']
+  config.access_token_secret = CONFIG['twitter']['access_token_secret']
 end
 
 streamer = Twitter::Streaming::Client.new do |config|
-  config.consumer_key = conf['twitter']['consumer_key']
-  config.consumer_secret = conf['twitter']['consumer_secret']
-  config.access_token = conf['twitter']['access_token']
-  config.access_token_secret = conf['twitter']['access_token_secret']
+  config.consumer_key = CONFIG['twitter']['consumer_key']
+  config.consumer_secret = CONFIG['twitter']['consumer_secret']
+  config.access_token = CONFIG['twitter']['access_token']
+  config.access_token_secret = CONFIG['twitter']['access_token_secret']
 end
 
-begin
-  $current_user = client.current_user
-rescue Exception => e
-  puts "Exception: #{e.message}"
-  # best hack:
-  $current_user = OpenStruct.new
-  $current_user.id = conf["access_token"].split("-")[0]
-end
+$current_user = client.get_current_user
 
-# lets define some exceptions
-class NotImportantException < Exception
-end
-
-class FilteredTweetException < Exception
-end
-
-class RudeTweetException < FilteredTweetException
-end
-
-class Twitter::Tweet
-  def raise_if_current_user!
-    raise NotImportantException if $current_user.id == self.user.id
-  end
-  
-  def raise_if_retweet!
-    raise NotImportantException if self.text.start_with? "RT @"
-  end
-  
-  def raise_if_filtered_word!
-    FILTER_WORDS.each do |fw|
-      if self.text.downcase.include? fw.downcase
-        raise FilteredTweetException, "#{self.user.screen_name} triggered filter: '#{fw}'"
-      end
-    end
-  end
-  
-  def raise_if_rude_word!
-    FILTER_RUDE.each do |fr|
-      if self.text.downcase.include? fr.downcase
-        raise RudeTweetException, "#{self.user.screen_name} triggered filter: '#{fr}'"
-      end
-    end
-  end
-  
-end
-
-class Twitter::Streaming::Event
-  def raise_if_current_user!
-    raise NotImportantException if $current_user.id == self.source.id
-  end
-  
-  def raise_if_rude_word!
-    FILTER_RUDE.each do |fr|
-      if self.target_object.name.include? fr.downcase
-        raise RudeTweetException, "#{self.user.screen_name} triggered filter: '#{fr}'"
-      end
-    end
-  end
-end
-
-puts "\033[34;1mplutia #{version}\033[0m by pixeldesu"
+puts "\033[34;1mplutia #{PLUTIA_VERSION}\033[0m by pixeldesu"
 puts "---------------------------"
 
 # base code: do not touch unless you know what it does
@@ -130,10 +68,10 @@ loop do
             client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
           when /i love you/i, /love you/i, /ilu/i, /ily/i
             sleep 3 + rand(7)
-            client.update "@#{object.user.screen_name} #{reply_love.sample}", in_reply_to_status:object
+            client.update "@#{object.user.screen_name} #{replies[:love].sample}", in_reply_to_status:object
           when /thanks/i, /thank you/i
             sleep 3 + rand(7)
-            client.update "@#{object.user.screen_name} #{reply_thanks.sample}", in_reply_to_status:object
+            client.update "@#{object.user.screen_name} #{replies[:thanks].sample}", in_reply_to_status:object
           end
         end
         
@@ -141,32 +79,32 @@ loop do
         case object.text
         when /good morning/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_morning.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:morning].sample}", in_reply_to_status:object
           
         # good night replies
         when /heading to bed/i, /good night/i, /goodnight/i, /oyasumi/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_night.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:night].sample}", in_reply_to_status:object
           
         # good evening replies
         when /good evening/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_evening.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:evening].sample}", in_reply_to_status:object
         
         # i'm hungry replies
         when /i'm hungry/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_hungry.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:hungry].sample}", in_reply_to_status:object
           
         # i'm home replies
         when /i'm home/i, /tadaima/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_home.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:home].sample}", in_reply_to_status:object
           
         # i'm tired replies
         when /i'm sleepy/i, /i'm tired/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_tired.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:tired].sample}", in_reply_to_status:object
           
         # people need hugs
         when /i want a hug/i, /i need a hug/i
@@ -176,18 +114,18 @@ loop do
         # people are feeling cold
         when /i'm cold/i, /i'm freezing/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_freezing.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:freezing].sample}", in_reply_to_status:object
           
         # people go somewhere
         when /off to work/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_work.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:work].sample}", in_reply_to_status:object
         when /off to school/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_school.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:school].sample}", in_reply_to_status:object
         when /away for/i
           sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{reply_away.sample}", in_reply_to_status:object
+          client.update "@#{object.user.screen_name} #{replies[:away].sample}", in_reply_to_status:object
         end
         
       rescue NotImportantException => e

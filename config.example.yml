@@ -3,3 +3,17 @@ twitter:
   consumer_secret: YOUR_KEYS_HERE
   access_token: YOUR_KEYS_HERE
   access_token_secret: YOUR_KEYS_HERE 
+
+active_replies:
+  - :evening
+  - :home
+  - :hungry
+  - :morning
+  - :night
+  - :tired
+  - :work
+  - :school
+  - :away
+  - :love
+  - :freezing
+  - :thanks
