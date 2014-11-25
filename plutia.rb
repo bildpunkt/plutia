@@ -12,18 +12,18 @@ PLUTIA_VERSION = "v0.1.91"
 # config file
 CONFIG = YAML.load_file File.expand_path(".", "config.yml")
 
+# convert the triggers that look like a regex to a (case-insensitive) regex
+CONFIG['replies'].each do |reply|
+  reply[:triggers].each_with_index do |trigger, i|
+    reply[:triggers][i] = /#{$1}/i if /^\/(.*)\/$/ =~ trigger
+  end
+end
+
 $LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
 
 require 'twitter-extensions'
 require 'replyloader'
-
-# reply lists
-loader = ReplyLoader.new './replies'
-replies = loader.reply_lists
-
-# filter lists
-FILTER_WORDS = YAML.load_file File.expand_path(".", "filters/words.yml")
-FILTER_RUDE = YAML.load_file File.expand_path(".", "filters/rude_words.yml")
+require 'responder'
 
 # Twitter client configuration
 client = Twitter::REST::Client.new do |config|
@@ -32,6 +32,14 @@ client = Twitter::REST::Client.new do |config|
   config.access_token = CONFIG['twitter']['access_token']
   config.access_token_secret = CONFIG['twitter']['access_token_secret']
 end
+
+# reply lists
+loader = ReplyLoader.new './replies'
+responder = Responder.new(loader.reply_lists, client)
+
+# filter lists
+FILTER_WORDS = YAML.load_file File.expand_path(".", "filters/words.yml")
+FILTER_RUDE = YAML.load_file File.expand_path(".", "filters/rude_words.yml")
 
 streamer = Twitter::Streaming::Client.new do |config|
   config.consumer_key = CONFIG['twitter']['consumer_key']
@@ -53,81 +61,22 @@ loop do
         object.raise_if_current_user!
         object.raise_if_retweet!
         
+        object.raise_if_filtered_word!
+        object.raise_if_rude_word!
+        
         # stuff plutia only will reply to if you mention her
-        if object.text.include? "@pluutia"
-          object.raise_if_filtered_word!
-          object.raise_if_rude_word!
-          
+        if object.text.include? "@#{CONFIG['twitter']['user_name']}"
           case object.text
           when /unmaid/i
-            client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status:object
+            client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status: object
             client.block(object.user.screen_name)
             client.unblock(object.user.screen_name)
-          when /give me a hug/i, /hug please/i
-            sleep 3 + rand(7)
-            client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
-          when /i love you/i, /love you/i, /ilu/i, /ily/i
-            sleep 3 + rand(7)
-            client.update "@#{object.user.screen_name} #{replies[:love].sample}", in_reply_to_status:object
-          when /thanks/i, /thank you/i
-            sleep 3 + rand(7)
-            client.update "@#{object.user.screen_name} #{replies[:thanks].sample}", in_reply_to_status:object
+          else
+            responder.make_reply object, true
           end
+        else # stuff plutia will reply to if she see's it on her timeline
+          responder.make_reply object
         end
-        
-        # stuff plutia will reply to if she see's it on her timeline
-        case object.text
-        when /good morning/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:morning].sample}", in_reply_to_status:object
-          
-        # good night replies
-        when /heading to bed/i, /good night/i, /goodnight/i, /oyasumi/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:night].sample}", in_reply_to_status:object
-          
-        # good evening replies
-        when /good evening/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:evening].sample}", in_reply_to_status:object
-        
-        # i'm hungry replies
-        when /i'm hungry/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:hungry].sample}", in_reply_to_status:object
-          
-        # i'm home replies
-        when /i'm home/i, /tadaima/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:home].sample}", in_reply_to_status:object
-          
-        # i'm tired replies
-        when /i'm sleepy/i, /i'm tired/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:tired].sample}", in_reply_to_status:object
-          
-        # people need hugs
-        when /i want a hug/i, /i need a hug/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} *hugs*", in_reply_to_status:object
-          
-        # people are feeling cold
-        when /i'm cold/i, /i'm freezing/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:freezing].sample}", in_reply_to_status:object
-          
-        # people go somewhere
-        when /off to work/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:work].sample}", in_reply_to_status:object
-        when /off to school/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:school].sample}", in_reply_to_status:object
-        when /away for/i
-          sleep 3 + rand(7)
-          client.update "@#{object.user.screen_name} #{replies[:away].sample}", in_reply_to_status:object
-        end
-        
       rescue NotImportantException => e
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
