@@ -1,3 +1,4 @@
 .directory
 config.yml
 Gemfile.lock
+.idea/
