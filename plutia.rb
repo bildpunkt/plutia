@@ -65,17 +65,19 @@ loop do
         object.raise_if_rude_word!
         
         # stuff plutia only will reply to if you mention her
-        if object.text.include? "@#{CONFIG['twitter']['user_name']}"
-          case object.text
-          when /unmaid/i
-            client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status: object
-            client.block(object.user.screen_name)
-            client.unblock(object.user.screen_name)
-          else
-            responder.make_reply object, true
+        if object.in_reply_to_user_id == $current_user.id or object.in_reply_to_user_id.nil?
+          if object.text.include? "@#{CONFIG['twitter']['user_name']}"
+            case object.text
+            when /unmaid/i
+              client.update "@#{object.user.screen_name} Okay, but you won't receive any tweets from me afterwards!", in_reply_to_status: object
+              client.block(object.user.screen_name)
+              client.unblock(object.user.screen_name)
+            else
+              responder.make_reply object, true
+            end
+          else # stuff plutia will reply to if she see's it on her timeline
+            responder.make_reply object
           end
-        else # stuff plutia will reply to if she see's it on her timeline
-          responder.make_reply object
         end
       rescue NotImportantException => e
       rescue Exception => e
