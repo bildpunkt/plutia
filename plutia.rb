@@ -65,7 +65,6 @@ loop do
         object.raise_if_rude_word!
         
         # stuff plutia only will reply to if you mention her
-        if object.in_reply_to_user_id == $current_user.id or object.in_reply_to_user_id.nil?
           if object.text.include? "@#{CONFIG['twitter']['user_name']}"
             case object.text
             when /unmaid/i
@@ -78,7 +77,6 @@ loop do
           else # stuff plutia will reply to if she see's it on her timeline
             responder.make_reply object
           end
-        end
       rescue NotImportantException => e
       rescue Exception => e
         puts "[#{Time.new.to_s}] #{e.message}"
