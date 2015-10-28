@@ -7,7 +7,7 @@ require 'ostruct'
 require 'pp'
 
 # version
-PLUTIA_VERSION = "v0.1.91"
+PLUTIA_VERSION = "v0.2.0"
 
 # config file
 CONFIG = YAML.load_file File.expand_path(".", "config.yml")
@@ -75,7 +75,9 @@ loop do
               responder.make_reply object, true
             end
           else # stuff plutia will reply to if she see's it on her timeline
-            responder.make_reply object
+            if object.in_reply_to_tweet_id == nil
+              responder.make_reply object
+            end
           end
       rescue NotImportantException => e
       rescue Exception => e
