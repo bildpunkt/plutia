@@ -75,7 +75,7 @@ loop do
               responder.make_reply object, true
             end
           else # stuff plutia will reply to if she see's it on her timeline
-            if object.in_reply_to_tweet_id == nil
+            unless object.reply?
               responder.make_reply object
             end
           end
@@ -100,11 +100,11 @@ loop do
         when :favorite
           puts "\033[33;1m[#{Time.new.to_s}] #{object.source.screen_name} favorited you!\033[0m"
           sleep 3 + rand(7)
-          client.update "@#{object.source.screen_name} Thanks for the star, I'll keep it safe!"
+          client.update "@#{object.source.screen_name} Aw, I'm glad you like what I'm doing!~"
         when :unfavorite
           puts "\033[31;1m[#{Time.new.to_s}] #{object.source.screen_name} unfavorited you!\033[0m"
           sleep 3 + rand(7)
-          client.update "@#{object.source.screen_name} W-Why are you taking my star away? ;w;"
+          client.update "@#{object.source.screen_name} W-Why did you do that? That's mean. ;w;"
         when :list_member_added
           object.raise_if_rude_word!
           puts "\033[36;1m[#{Time.new.to_s}] #{object.source.screen_name} added you to the list '#{object.target_object.name}'!\033[0m"
