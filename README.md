@@ -51,7 +51,7 @@ Replies are the things plutia is saying to you after she gets triggered with one
 
 ## Contributing
 
-If you have any ideas for more replies and things plutia could reply to, either [open an issue](https://github.com/pixeldesu/pluta/issues/new) with your suggestions or [fork](https://github.com/pixeldesu/pluta/fork) the repository and make your changes with the guide above and submit them with a Pull Request!
+If you have any ideas for more replies and things plutia could reply to, either [open an issue](https://github.com/pixeldesu/plutia/issues/new) with your suggestions or [fork](https://github.com/pixeldesu/plutia/fork) the repository and make your changes with the guide above and submit them with a Pull Request!
 
 ## Contributors
 
